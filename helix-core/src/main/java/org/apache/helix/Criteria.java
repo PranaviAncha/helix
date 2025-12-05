@@ -20,7 +20,65 @@ package org.apache.helix;
  */
 
 /**
+<<<<<<< HEAD
  * Describes various properties that operations involving {@link Message} delivery will follow.
+=======
+ * Specifies recipient criteria for message delivery in a Helix cluster.
+ * 
+ * <p>The {@link Criteria} object defines which instances should receive a message by specifying
+ * attributes like instance name, resource, partition, and state. The most critical configuration
+ * is {@link DataSource}, which determines where Helix looks up cluster state to resolve recipients.
+ * 
+ * <p><b>PERFORMANCE WARNING:</b> Using {@link DataSource#EXTERNALVIEW} with wildcard or unspecified
+ * resource names causes Helix to scan ALL ExternalView znodes in the cluster, regardless of other
+ * criteria fields. At scale (thousands of resources), this causes severe performance degradation.
+ * 
+ * <p><b>Quick Start - Common Patterns:</b>
+ * <pre>
+ * // Pattern 1: Send to specific live instance (most efficient)
+ * Criteria criteria = new Criteria();
+ * criteria.setInstanceName("host_1234");
+ * criteria.setRecipientInstanceType(InstanceType.PARTICIPANT);
+ * criteria.setDataSource(DataSource.LIVEINSTANCES);
+ * criteria.setSessionSpecific(true);
+ * 
+ * // Pattern 2: Send to all replicas of a specific partition
+ * Criteria criteria = new Criteria();
+ * criteria.setInstanceName("%");
+ * criteria.setRecipientInstanceType(InstanceType.PARTICIPANT);
+ * criteria.setDataSource(DataSource.EXTERNALVIEW);
+ * criteria.setResource("MyDatabase");  // IMPORTANT: Specify exact resource name
+ * criteria.setPartition("MyDatabase_5");
+ * criteria.setSessionSpecific(true);
+ * 
+ * // Pattern 3: Broadcast to all live instances
+ * Criteria criteria = new Criteria();
+ * criteria.setInstanceName("%");
+ * criteria.setRecipientInstanceType(InstanceType.PARTICIPANT);
+ * criteria.setDataSource(DataSource.LIVEINSTANCES);
+ * criteria.setSessionSpecific(true);
+ * </pre>
+ * 
+ * <p><b>DataSource Selection Guide:</b>
+ * <ul>
+ *   <li><b>LIVEINSTANCES:</b> Use when targeting live instances without resource/partition filtering.
+ *       Fastest option - reads only LIVEINSTANCES znodes.</li>
+ *   <li><b>EXTERNALVIEW:</b> Use when filtering by resource, partition, or replica state.
+ *       ALWAYS specify exact resource names to avoid scanning all ExternalViews.</li>
+ *   <li><b>INSTANCES:</b> Use when targeting all configured instances (live or not) based on
+ *       instance configuration.</li>
+ *   <li><b>IDEALSTATES:</b> Use when targeting based on ideal state configuration rather than
+ *       current state. Less common.</li>
+ * </ul>
+ * 
+<<<<<<< HEAD
+ * @see ClusterMessagingService#send(Criteria, Message)
+ * @see CriteriaEvaluator
+=======
+ * @see ClusterMessagingService#send(Criteria, org.apache.helix.model.Message)
+ * @see org.apache.helix.messaging.CriteriaEvaluator
+>>>>>>> ee3e441f5 (Document performance characteristics and safe usage patterns for messaging API)
+>>>>>>> 73951dafc (Document performance characteristics and safe usage patterns for messaging API)
  */
 public class Criteria {
   public enum DataSource {
