@@ -934,6 +934,7 @@ public class ZKHelixAdmin implements HelixAdmin {
       logger.info("Instance {} in cluster {} is carrying over from prev session.",
           instanceName, clusterName);
       if (evacuationInfo != null) {
+        // Partitions are not evaluated across sessions, so the counts stay unset rather than reported as zero.
         evacuationInfo.setReason(EvacuationInfo.ReasonCode.MULTIPLE_SESSIONS);
       }
       return true;

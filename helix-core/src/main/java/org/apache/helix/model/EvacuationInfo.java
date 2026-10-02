@@ -101,6 +101,12 @@ public class EvacuationInfo {
     return state == EvacuationState.COMPLETED;
   }
 
+  /**
+   * Returns the number of partitions still blocking evacuation, or null when Helix did not count
+   * them: for {@link EvacuationState#NOT_EVACUATING}, and for {@link EvacuationState#IN_PROGRESS}
+   * with reason {@link ReasonCode#MULTIPLE_SESSIONS}, because partitions are not evaluated while
+   * the instance has current states under more than one session.
+   */
   public Integer getRemainingPartitionCount() {
     return remainingPartitionCount;
   }
@@ -109,6 +115,10 @@ public class EvacuationInfo {
     this.remainingPartitionCount = remainingPartitionCount;
   }
 
+  /**
+   * Returns the number of pending messages blocking evacuation, or null in the same cases as
+   * {@link #getRemainingPartitionCount()}.
+   */
   public Integer getPendingMessageCount() {
     return pendingMessageCount;
   }

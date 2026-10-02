@@ -66,6 +66,7 @@ import org.apache.helix.model.ClusterConstraints.ConstraintType;
 import org.apache.helix.model.ConstraintItem;
 import org.apache.helix.model.CustomizedStateConfig;
 import org.apache.helix.model.CustomizedView;
+import org.apache.helix.model.EvacuationInfo;
 import org.apache.helix.model.ExternalView;
 import org.apache.helix.model.HelixConfigScope;
 import org.apache.helix.model.HelixConfigScope.ConfigScopeProperty;
@@ -2317,5 +2318,32 @@ public class TestZkHelixAdmin extends ZkUnitTestBase {
     Assert.assertTrue(admin.getInstancesInCluster(clusterName).isEmpty(), "Instances should be removed");
 
     System.out.println("End test :" + TestHelper.getTestMethodName());
+  }
+
+  @Test
+  public void testGetEvacuationStatusWithMultipleSessions() throws Exception {
+    String clusterName = TestHelper.getTestMethodName();
+    String instanceName = "localhost_12918";
+    ZKHelixAdmin admin = new ZKHelixAdmin(_gZkClient);
+    admin.addCluster(clusterName, true);
+    admin.addInstance(clusterName, new InstanceConfig(instanceName));
+    admin.setInstanceOperation(clusterName, instanceName, InstanceConstants.InstanceOperation.EVACUATE);
+    for (String session : Arrays.asList("session_1", "session_2")) {
+      _gZkClient.createPersistent(
+          PropertyPathBuilder.instanceCurrentState(clusterName, instanceName, session), true);
+    }
+
+    EvacuationInfo info = admin.getEvacuationStatus(clusterName, instanceName, Collections.emptySet());
+
+    Assert.assertEquals(info.getState(), EvacuationInfo.EvacuationState.IN_PROGRESS);
+    Assert.assertEquals(info.getReason(), EvacuationInfo.ReasonCode.MULTIPLE_SESSIONS.getMessage());
+    Assert.assertNull(info.getRemainingPartitionCount());
+    Assert.assertNull(info.getPendingMessageCount());
+    String json = OBJECT_MAPPER.writeValueAsString(info);
+    Assert.assertFalse(json.contains("remainingPartitionCount"), json);
+    Assert.assertFalse(json.contains("pendingMessageCount"), json);
+    Assert.assertFalse(admin.isEvacuateFinished(clusterName, instanceName));
+
+    deleteCluster(clusterName);
   }
 }
